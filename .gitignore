@@ -1,0 +1,12 @@
+.env
+
+nytdataset/
+*.zip
+*.csv
+
+spark/
+*.tgz
+
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
