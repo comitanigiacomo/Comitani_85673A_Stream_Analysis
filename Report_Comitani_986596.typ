@@ -1,104 +1,120 @@
+#import "@preview/ilm:2.0.0": *
+
+#set text(lang: "en")
+
+#show: ilm.with(
+  title: [Project 7: Data Streaming Algorithms],
+  authors: "Giacomo Comitani",
+  date: datetime(year: 2026, month: 03, day: 20),
+  abstract: [],
+  table-of-contents: none,
+  bibliography: bibliography("works.bib"),
+  figure-index: (enabled: false),
+  table-index: (enabled: false),
+  listing-index: (enabled: false)
+)
+
 #show link: underline
+#set text(size: 10.5pt)
+
 
 = Project 7: Stream Analysis
 
-== Introduction: Base Idea, Motivation and Scope of the Work
+== Introduction: Base Idea, Scope and Structure of the Work
 
 “I declare that this material, which I now submit for assessment, is entirely my own work and has not been taken from the work of others, save and to the extent that such work has been cited and acknowledged within the text of my work. I understand that plagiarism, collusion, and copying are grave and serious offences in the university and accept the penalties that would be imposed should I engage in plagiarism, collusion or copying. This assignment, or any part of it, has not been previously submitted by me or any other person for assessment on this or any other course of study. No generative AI tool has been used to write the code or the report content.“
 
 === Main Idea for the Project
 
-My idea for this project is to analyze the dataset by considering the users comments as a big data stream.
-In particular, I want to create an implementation of two of the algorithms we have studied during the course regarding the topic of data streams.
+My idea for the project was to first implement the` Flajolet-Martin` algorithm to count the number of unique users who commented on the New York Times in 2020. After that, I implemented a Bloom Filter which was used to filter and count the comments made on articles regarding Science.
 
 ==== Algorithm 1: Flajolet-Martin
 
 The first algorithm I implemented is the `Flajolet-Martin` algorithm.
 
-I thought that a useful feature for the New York Times would be a tool to understand the total traffic of unique users on the site. This helps to better understand user habits, like the time or day they are most likely to be online and comment, versus when they are least active. This would be great information to understand, for example, at what time they should publish a new article in order to maximize instant visibility.
+I thought that a useful feature for the New York Times would be a tool to understand the total traffic of unique users on the site. This helps to better understand user habits, like the time or day they are most likely to be online and comment, versus when they are least active. This would be a great information to understand, for example, at what time they should publish a new article in order to maximize visibility.
 
 Since the algorithm counts the total unique users at specific moment, the program could be run multiple times during the day, counting the difference in the output values to understand at which time of the day there is the greatest increase in users.
 
-Using this specific algorithm will allow me to obtain that information in a reasonable time, using minimal RAM, making it a great and scalable solution for a massive real-world dataset.
-
 ==== Algorithm 2: Bloom Filter
 
-...
+After the implementation of the `Flajolet-Martin` algorithm, i focused on implementing the `Bloom Filter`. By grouping all the comments regarding articles of a specific section, I thought it would be a great feature for the New York Times website to create dedicated subsections. This way, if a user wants to see ony specific information, he could land on a specific page with all the information only for that section.
+To understand which section to build first, a programmer would need to see which sections receive the most comments. With the Bloom Filter, this information can be obtained in a fast and reasonable way.
 
 === Experiments and Scalability Evaluation
 
-In this section of the work, I want to observe the real usage of my algorithm implementations.
+In this section of the project, I observed the real-word performance of my implementations.
 
-My idea is to process a certain percentage of the dataset, like `50,000` or more lines, keeping it at a reasonable dimension, and make a comparison between the real results and the predictions I can obtain with my implementation of the algorithm.
+the approach was to process the dataset and compare the exact result obtained with some built-in Python functions like `set()`, with the estimates obtained from my implementations of the algorithms. This allowed me to verify if the accuracy corresponds to the theorical formula.
 
-An idea, for example, is to count the exact real users using a built-in function in Python, like `set()`, and compare it with the result of counting the unique users using my `Flajolet-Martin` implementation to see if it corresponds to the theoretical formula.
+Finally, I generated some graphs to visualize the extracted data, in order to make the final results easier to visualize.
 
-In this section, I will generate some graphs to visualize the trend of the curve and the useful data, making the results visually impactful.
+#pagebreak()
 
 == Important Choices
 
 === `yield` in Python to Simulate the Data Stream
 
-The first challenge of the work was to simulate the data stream on my PC, so not loading all the data into RAM with a pre-built function like `pandas.read_csv()`, which would "cheat" the scope of the work.
+The first challenge of the work was to simulate the data stream on my PC. This meant I couldn't load all the data into RAM using a pre-built function like `pandas.read_csv()`, because that would "cheat" the scope of the work.
 
-Collecting information on how to do this in Python, I found the possibility to crerate a lazy iterator using the function `yield` @stackoverflow_zeros.
+While researching how to do this in Python, I found the possibility to create a lazy iterator using the keyword `yield` @stackoverflow_zeros.
 
-I found out that functions like `read_csv` work in `batch`: the function creates a dataframe in RAM. Once the dataframe is in RAM, the algorithm can cycle through it. The problem is that if the file is larger than the available RAM, the entire process ends in a memory error.
+I found out that functions like `read_csv` work in `batch`: they create a dataframe in RAM first, then the algorithm can cycle through it. The problem is that if the file is larger than the available RAM, the entire process ends in a memory error.
 
-For simulating data streams and working with larger files, the solution is to use a *generator function*, a special type of function that returns a *lazy iterator*.
+To simulate data streams and work with larger files, the solution is to use a *generator function*, a special type of function that returns a lazy iterator.
 
-A lazy iterator is an object I can loop over without storing its entire content in memory. This is great for this project because with this special function, I can simulate a data stream and work with large files that I cannot fully store in the RAM of my machine.
+A *lazy iterator* is an object that I can loop over without storing its entire content in memory. This is perfect for this project because it allows me to simulate a continuous stream and process large files that are too big for my machine's RAM.
 
-Looking at the documentation of the Pandas function `read_csv` @pydataPandasread_csvx2014, I found confirmation that the function loads the dataframe directly into memory: 
+Looking at the official Pandas documentation for `read_csv` @pydataPandasread_csvx2014, I found confirmation that the function loads everything directly into memory: 
 
-- "Note that the entire file is read into a single DataFrame regardless, use the chunksize or iterator parameter to return the data in chunks."
+_"Note that the entire file is read into a single DataFrame regardless, use the chunksize or iterator parameter to return the data in chunks."_
 
-So the correct way is to use the `yield` statement directly in Python. 
-
-The focus should be on the difference between the `return` and `yield` statements:
-
-- `return`: It destroys the context and loses the memory state, so before the function terminates, I have to store all my data in a data structure (filling RAM).
-- `yield`: Outputs the result and pauses. It basically writes a string in RAM, pauses, and then overwrites that string in RAM with the new one. Perfect for my scope.
+So the best approach was to use the *yield* statement directly in Python. This is because the *return* statement terminate the functions and destroy its context, meaning that it has to compute and store all the data before the function ends. Instead, the *yield* statement outputs the result and pauses, processing the data step by step without storing the entire dataset.
 
 === FlajoletMartin algorithm
 
 ==== Hashing the elements
 
-First of all, it is important that the hash strings cover all the possible elements. The *Mining of MAssive Datasets* book states:
+First of all, it is important that the hash values cover all the possible elements. The *Mining of Massive Datasets* textbook states:
 
-  "The length of the bit-string must be sufficient that there are more possible results of the hash function than there are elements of the universal set."
+_"The length of the bit-string must be sufficient that there are more possible results of the hash function than there are elements of the universal set."_
 
-Running the command `cat nyt-comments-*.csv | wc -l`  to count the lines of all the files, I can see that there are circa `26463903` comments.
+Running the command:
 
-The project need to scale up with real world, so i will use a 128 bit hash functions in order to potentially manage real word dataset.
+#align(center)[
+```terminal
+ cat nyt-comments-part*.csv | wc -l 
+```
+]
+to count the total number of lines, I can see that they are circa `13.231.956`.
+
+The project needs to scale up with real-world scenarios, so i used a 128-bit hash functions in order to potentially manage massive datasets.
 
 Later on, the book suggests:
 
-  "We shall pick many different hash functions and hash each element of the stream using these hash functions."
+_"We shall pick many different hash functions and hash each element of the stream using these hash functions"._
 
-It's very important to use different hash functions. This is to avoid the case where a single hash function predicts a lot of zeroes by pure chance, making it seem like there are many users when in fact the real number is very low. By combining the results of different hash functions, I can eliminate this outlier problem.
+It's very important to use different hash functions, to avoid the case where a single hash function predicts a lot of zeros by chance, making it seem like there are many users when in fact the real number is very low. By combining the results of different hash functions, I eliminated the outlier problem.
 
-Finally, to combine the results, it is important to make the averages and then the median of the averages:
+Finally, to combine the results, I calculated the averages and then the median of those averages:
 
-    "We can combine the two methods. First, group the hash functions into small groups, and take their average. Then, take the median of the averages."
+_"We can combine the two methods. First, group the hash functions into small groups, and take their average. Then, take the median of the averages."_
 
 This solves two big problems: 
 
-- a simple mean is easily ruined by extreme outliers 
+- A simple mean is easily ruined by extreme outliers 
 
-- a simple median is too rigid because it only returns exact powers of 2.
+- A simple median is too rigid because it only returns exact powers of 2.
 
 Grouping the hashes and taking the median of the averages gives a much more stable estimate.
 
-Regarding the choise of what kind of hash use in the project, I fort eliminate the built-in `hash()` function. This because accepting only a single parameter to hash. This would'n let me have several different hash functions. So i searched for an hash family function that would permet me to have a lot of different hash functions in little  line of code.
+Regarding the choice of which hash function to use in the project, I first discarted the built-in Python `hash()` function. This because it only accepts a single parameter to hash, which wouldn't allow me to have several different hash functions. So i searched for a hash function family that would permit me to generate many different hashes in a few lines of code.
 
-Collecting informations about hash functions, flajolet martin and bloom filters implementation i found out that the perfect trade off between speed and uniformity wuold been to use the *murmurhash* family @stackoverflowWhichHash. Using `mmh3.hash128` would be perfect for my scope for my scope:
+Collecting information about hash functions and the implementation of Flajolet-Martin and bloom filters, I found out that the perfect trade-off between speed and uniformity was the *MurmurHash* family @stackoverflowWhichHash. Using `mmh3.hash128` was perfect for my scope:
 
-- the function produced a 128 bit hash, that would be perfect even in a real word constest @mmh3Reference
+- The function produced a 128-bit hash, which is perfect even in a real-word context @mmh3Reference
 
-- the function accept a seed as a parameter: changing the seed i can generate several different hash function using the same library function
-
-so i found what hash function to use in the project
+- The function accepts a seed as a parameter: changing the seed, I could generate several different hash functions using the same library function.
 
 ==== Finding the trailing zeros
 
@@ -116,19 +132,20 @@ Essentially, this function operated in two steps:
 
 - It performed a linear scan to find the index of the first `1`, which corresponds exactly to the number of trailing zeros.
 
-The function worked perfectly from a logical point, but the continuous string type-casting and linear scanning made the algorithm computationally heavy. Processing the entire dataset using 256 hash functions took nearly *50 minutes*, which was not a reasonable execution time for a streaming context.
+The function worked perfectly from a logical point, but the continuous string casting and linear scanning made the algorithm slow. Processing the entire dataset using `256` hash functions took nearly *50 minutes*, which was not a reasonable execution time for a streaming context.
 
-Since I wanted to optimize the algorithm, I searched online for a possible way to find the least significant bit without the need to linearly scan the entire hash. Finding the position of the least significant 1 would, in fact, allow me to directly determine the number of trailing zeros.
+Since I wanted to optimize the algorithm, I searched online for a possible way to find the least significant bit without the need to linearly scan the entire hash.
 
-Eventually, I found exactly what I had been searching for on an StackOverflow page @stackoverflowReturnIndex
+Eventually, I found exactly what I had been searching for on a StackOverflow page @stackoverflowReturnIndex.
 
-The solution is to perform a bitwise *AND* operation between the hash `h` and its negative counterpart `-h`. This works because, to create the negative version of a number (Two's Complement), the computer inverts all the bits in the binary representation and adds `1`.
+The solution was to perform a bitwise *AND* operation between the hash `h` and its negative counterpart `-h`. This works because, to create the negative version of a number, the computer inverts all the bits in the binary representation and adds `1`.
 
 Adding this `1` generates a chain of carries that leaves all the original trailing zeros intact and stops exactly at the first `1`. As a result, all the bits to the left remain inverted compared to the original number. Performing a bitwise AND between `h` and -`h` cancels out all the inverted bits on the left and the zeros on the right, allowing me to instantly isolate the power of 2 that corresponds to the trailing zeros:
 
+#pagebreak()
+
 ```Python
 def analyze_user_ID(self, item): 
-        
         for i in range(self.num_hashes):
             h = mmh3.hash128(str(item), i)
             
@@ -141,11 +158,11 @@ def analyze_user_ID(self, item):
 
 Initially, I implemented the algorithm strictly following the textbook version analyzed during the course.
 
-Although the execution time was reasonable, the final estimate was significantly over the correct one. To count the real number of unique users i used Python's built-in `set()` data structure, which resulted `403.025`.
+Although the execution time was reasonable, the final estimate was significantly over the correct one. To count the real number of unique users I used Python's built-in `set()` data structure, which resulted in `403.025`.
 
-However, the algorithm estimate, even utilizing `256` different hash functions, resulted in `1.091.584`. To understant the issue, i started by debugging the code and printing the various groups to search the reasons behind such overestimations:
+However, the algorithm's estimate, even utilizing `256` different hash functions, resulted in `1.091.584`. To understant the issue, I started by debugging the code and printing the various groups to find the reasons behind this overestimation:
 
-```pseudocode
+```python
 Group 1: [524288, 262144, 131072, 131072, 65536, 131072, `8388608`, 262144, `4194304`, 1048576, 262144, 524288, 262144, 131072, `4194304`, `2097152`]
 
 Group 2: [131072, 262144, `2097152`, 262144, 262144, 262144, 262144, 524288, `8388608`, 1048576, 131072, `4194304`, 524288, 1048576, 131072, 262144]
@@ -163,47 +180,111 @@ Group 7: [1048576, 262144, 1048576, 524288, 262144, 65536, `8388608`, 262144, 26
 Group 8: [131072, 262144, 1048576, 8388608, `2097152`, 262144, 262144, 1048576, 524288, 262144, 65536, `33554432`, 524288, 524288, 1048576, 65536]...
 ```
 
-I could observe that among the values, almost every gorup contained at least one hige extreme outliers. for istance, group 5 contained value `134217728`.
+I observed that almost every group contained at least one huge extreme outlier. For instance, group 5 contained value `134.217.728`.
 
-This lead me to think that this version of the algorithm was high subscectible to variance, cause a single big hash could comprimse the mean of the entire group cusing the algorithm to overestimate. 
+This led me to think that this version of the algorithm was high susceptible to variance, because a single big hash could compromise the mean of the entire group, causing the algorithm to overestimate. 
 
-Even increasing the number of hash or goups, lead to the same result, with a lot more time.
-With `512` hash functions and `32` groups: `1071104`
+Even increasing the number of hash functions or groups led to the same result, just taking a lot more time. With `512` hash functions and `32` groups, the result was still `1.071.104`
 
-Chasing the greatest possible results i reread the section from the book finding the following quote: 
+Chasing a better result, I reread the section from the book and found the following quote: 
 
-"In order to guarantee that any possible average can be obtained, groups should be of size at least a
-small multiple of log2 m."
+_"In order to guarantee that any possible average can be obtained, groups should be of size at least a small multiple of log2 m."_
 
-So i tried using `256` hash function with `7` group, but the resut was off: `1217877`
+So i tried using `256` hash functions with `7` group, but the resut was still off: `1.217.877`
 
 ==== Small research
 
-Questioning about how to adjust the result of the algrithm i searched and i found on th main page of wikipedia @wikipediaFlajoletMartinAlgorithm great informations.
+Wondering how to adjust the algorithm's result, I searched and found great informations on the main wikipedia page for the Flajolet-Martin algorithm @wikipediaFlajoletMartinAlgorithm.
 
-At first i noticed the presence of a constant. I found out that it was the *correction factor*, called by the author "the magic constant" of the flajoletmartin agorithm used to obtain more realistic results, as said in the original paper @flajolet1985probabilistic
+At first I noticed the presence of a constant. I found out that it was a *correction factor*, called by the author "the magic constant" $(Phi = 0.77351)$ used to obtain more realistic results, as stated in the original paper @flajolet1985probabilistic.
 
-but even multipling the previous result for the correction factor tìdid not bring the expected results, caus the algrthm resut of `844351 unique users`.
+However, even multiplying the previous result for the correction factor did not bring the expected result, because the algorithm result was still `844351` unique users.
 
-To resolve the problem i continued reading the wikipedia page, founding out that the algorithm ha subito an offical evolutionin 2003, fromthe same Flagolet called loglog algorothm: @FlajoletLogLog
-The base idea of the new algorthm is to fare la media on the number of zeroes and then retuen the result 2^result. So i proceed by adjusting solamente the way the algotohm worked: simply changng one line, permitted mo to have a real good stime of the result.
+To resolve the problem, I continued reading the wikipedia page and found out that the algorithm underwent an offical evolution in 2003 by the same author, called the *loglog* algorithm @FlajoletLogLog. The base idea of this new algorithm is to calculate the average of the maximum number of trailing zeroes directly, and then return $2^"average"$. So I proceeded by adjusting only the way my algorithm worked: simply changing one line of logic allowed me to get a really good estimate.
 
-Thinking about how to have only the trailing zeroes a landend one more time on stackoverflow @stackoverflowPythonicCount.
+Thinking about how to efficiently extract only the trailing zeros, I landend one more time on StackOverflow @stackoverflowPythonicCount.
 
-i found out that with one line of code i can change the alorithm or working on the maximum number of trailing zeroes, then do mean and median to keep the variance after control 
+I found out that with one line of code I could update the algorithm to work directly on the maximum number of trailing zeroes, and then apply the mean and median grouping to keep the variance after control.
 
-Since the result was not "perfect" (`547500`) even without a theorical base, i decide to use in the ultimate version of my implementation of the algrithm the constant $Phi = 0.77351$. In the implementation of flajolet, the constant was used as the result was undersitmating the real result. so I can see on the wikipedia page @wikipediaFlajoletMartinAlgorithm or in the original paper @flajolet1985probabilistic, the constant was used to divide their final result: res = res/Phi. since without the costant my result was overstimating the simulation, i thought about multiply my final result with the constanct, to make a sort of *finetuning* with the current database i have at disposizione.
+Since the result was still not "perfect" (`547500`), even without a theorical base, I decided to use the constant $Phi = 0.77351$ in the ultimate version of my implementation. In the original Flajolet-Martin implementation, the algorithm usually underesitmates the real result. As I saw on the wikipedia page @wikipediaFlajoletMartinAlgorithm and in the original paper @flajolet1985probabilistic, the constant was used to divide the final result: $"res" = "res"/Phi$. Since my implementation without the constant was overstimating, I decided to *multiply* my final result by the constanct, to do a sort of *fine-tuning* specifically for the nyt dataset.
 
-In this final way the algoritsm returned a very good stima of the real unique users, in a reasonable time: `423496` in `6` minutes.
+With this final implementation the algorithm returned a very good estimate of the real unique users in a reasonable time: `423496` in `6` minutes.
 
-The fact that my final version is tuned for the dataset in question, impone that with onother dataset the results could be not good for the real count. In thaht cases, the best solutions would be to implement the loglog version of the algoritm using bitmao as sayed in tthe paper, obtaining a better results.
-
-In my opinion comunquer il risultato della prima parte del lavoro penso sia correct, caus ethe algorithm can scan neraly 26 million comment in 6 minutes, without storing allt eh amount of data in RAM, returnuing a very ìgood results, which was the scope of the work.
+The fact that my final version is tuned for the dataset in question means that, with another dataset, the results might not be accurate. In that case, the best solutions would be to implement the loglog algorithm of as described in the original paper, to obtain better results.
 
 === Bloom Filter:
 
+Following the suggestion in the project description, I decided to build a bloom filter for comments regarding articles of a specific section.
 
+My goal was to first scan the articles file to save the hashes of the `Science` articles, building the Bloom Filter. Then, I scanned the stream of million comments to identify only the comments made on science articles.
 
+This approach was great for the scope of the project, because without the bloom filter , a standard search tree or hash table wouldn't fit in RAM.
 
+In a real-word example this mechanism would be perfect for isolating a specific stream of comments to create a dedicated view on a website, or in any another context where a user only wants to see science-related discussions.
 
-#bibliography("works.bib", style: "ieee")
+==== Creating the trusted list S
+
+First of all, I needed to create my trusted list $S$, which is basically the collection of all the article IDs regarding science.
+
+To understand the structure of the CSV file i printed out the first line:
+
+```terminal
+head -n 1 nyt-articles-2020.csv
+newsdesk,section,subsection,material,headline,abstract,keywords,word_count,pub_date,n_comments,uniqueID
+```
+
+So I needed to extract the `uniqueID` field whenever the `section` field was equal to `Science`.
+
+The first implementation that came to my mind to create the initial trusted list was to use the built-in Python `set()` data structure:
+
+```python
+import csv
+
+def create_trusted_list(repo):
+    
+    s = set()
+        
+    with open(repo + "nyt-articles-2020.csv", mode='r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        headers = next(reader)
+        article_id = headers.index("uniqueID")
+        article_section = headers.index("section")
+        for row in reader:
+            if row[article_section] == "Science":
+                s.add(row[article_id])
+    return s
+```
+
+However in this way, if the initial file was too big, I would load to much data into the RAM all at once. The solution, once again, was to use the *yield* keyword to create a generator: 
+
+```python
+def create_trusted_list(repo):
+    with open(repo + "nyt-articles-2020.csv", mode='r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        headers = next(reader)
+        
+        article_id = headers.index("uniqueID")
+        article_section = headers.index("section")
+        
+        for row in reader:
+            if row[article_section] == "Science":
+                yield row[article_id]
+```
+
+==== Construction (Pre-processing S):
+
+In this phase I needed to initialize an array of `m` bits to `0`, choose `k` indipendent hash functions and, for every key in $S$, hash it with all `k` functions. Finally, I had to set the bits at those resulting indices to `1`.
+
+To understand what value assign to $m$, I initially checked the length of my trusted list $S$: `354` unique articles ($n = 354$)
+
+In example `4.4.3` of the textbook, the author assign `8` bits of memory for each element inserted in the filter. With the goal of scaling up my algorithm for real-world scenarios, I assigned `10` bits for element. Since there are `354` elements in the trusted list, I calculated $m = 354 * 10 = 3540$
+
+The textbook later suggest:
+
+_"We might choose $k$, the number of hash functions, to be $m/n$ or less"_
+
+Since in this case $n = 354$ and $m = 3540$, the ratio $m/n = 10$
+
+starting from `10`, I tried  some different values for `k` until I found  $k= 7$ provided the best result.
+
+== Conclusions
