@@ -60,8 +60,6 @@ In this section of the project, I observed the real-world performance of my impl
 
 The approach was to process the dataset and compare the exact result obtained with some built-in Python functions like `set()`, with the estimates obtained from my implementations of the algorithms. This allowed me to verify if the accuracy corresponds to the theoretical formula.
 
-Finally, I generated some graphs to visualize the extracted data, in order to make the final results easier to visualize.
-
 == Important Choices
 
 === `yield` in Python to Simulate the Data Stream
